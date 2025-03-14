@@ -1,0 +1,108 @@
+id: pageviews-data
+namespace: wikimedia-pageviews
+description: Finds the latest pageviews URL
+
+variables:
+  base_url: "https://dumps.wikimedia.org/other/pageviews/"
+
+tasks:
+  - id: latest_pageviews
+    type: io.kestra.plugin.scripts.python.Script
+    beforeCommands:
+      - pip install requests beautifulsoup4
+    script: |
+      import requests
+      from bs4 import BeautifulSoup
+      import sys
+      import json
+      from kestra import Kestra
+
+
+      def get_latest_pageviews_url(base_url: str):
+          resp = requests.get(base_url)
+          soup = BeautifulSoup(resp.content, 'html.parser')
+
+          # Get latest year
+          years = sorted([a['href'] for a in soup.find_all('a') if a['href'].strip('/').isdigit()], reverse=True)
+          latest_year = years[0]
+
+          # Get latest month
+          resp_month = requests.get(f'{base_url}{latest_year}')
+          soup_month = BeautifulSoup(resp_month.content, 'html.parser')
+          months = sorted([a['href'] for a in soup_month.find_all('a') if latest_year.strip('/') in a['href']], reverse=True)
+          latest_month = months[0]
+
+          # Get latest file
+          resp_file = requests.get(f'{base_url}{latest_year}{latest_month}')
+          soup_file = BeautifulSoup(resp_file.content, 'html.parser')
+          files = sorted([a['href'] for a in soup_file.find_all('a') if a['href'].startswith('pageviews') and a['href'].endswith('.gz')], reverse=True)
+          latest_file = files[0]
+
+          latest_url = f'{base_url}{latest_year}{latest_month}{latest_file}'
+          
+          print(json.dumps({"latest_pageviews_url": latest_url}))
+
+          # Full URL
+          return latest_url
+
+
+      latest_url = get_latest_pageviews_url("{{ vars.base_url }}")
+
+      Kestra.outputs({
+        'latest_url': latest_url
+      })
+
+
+
+  - id: download_pageviews
+    type: io.kestra.plugin.core.http.Download
+    uri: "{{ outputs.latest_pageviews.vars.latest_url }}"
+
+
+  - id: pageviews_to_parquet
+    type: io.kestra.plugin.scripts.python.Script
+    outputFiles:
+      - "latest_pageviews_table1.parquet"
+    inputFiles:
+      page_views_file.gz: "{{outputs.download_pageviews.uri}}"
+    beforeCommands:
+      - pip install pandas
+      - pip install fastparquet
+    script: |
+      import pandas as pd
+      import os
+      import gzip
+      from kestra import Kestra
+
+      def parse_pageviews_data(file_path: str):
+        with gzip.open(file_path, 'rt', encoding='utf-8') as f:
+          data = []
+          for row, line in enumerate(f, 1):
+              try:
+                  line_cols = line.split()
+                  lang_project, page_title, views, data_bytes = line_cols
+                  lang_project_split = lang_project.split('.')
+                  language = lang_project_split[0]# if len(lang_project_split) > 1 else ''
+                  if len(language) <= 1: #Means no language was specified
+                      language = ''
+                      project = lang_project
+                  else:
+                      project = '.'.join(lang_project_split[1:]) if len(lang_project_split) > 1 else ''
+                  data.append((language, project, page_title, int(views), int(data_bytes)))
+              except Exception as e:
+                  print(f'Error at row: {row}')
+                  print(e)
+                  print(f'line: {line}')
+
+        df = pd.DataFrame(data, columns=['language', 'project', 'page_title',
+                                'views', 'bytes'])
+        df.to_parquet('latest_pageviews_table1.parquet')
+
+      parse_pageviews_data('page_views_file.gz')
+
+
+triggers:
+  - id: daily
+    type: io.kestra.plugin.core.trigger.Schedule
+    disabled: true
+    cron: 0 9 * * *
