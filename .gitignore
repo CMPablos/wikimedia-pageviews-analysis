@@ -1,2 +1,7 @@
-.venv/
-uv.lock
+*credentials.auto.tfvars
+*/keys/*.json
+
+*/.terraform/*
+*tfstate*
+*.tfvars*
+*.terraform.lock*
