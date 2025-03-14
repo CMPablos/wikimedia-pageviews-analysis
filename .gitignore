@@ -1,1 +1,2 @@
-steam_dataset/
+.venv/
+uv.lock
