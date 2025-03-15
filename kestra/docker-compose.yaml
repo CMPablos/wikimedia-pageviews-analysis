@@ -3,6 +3,7 @@ version: '3.8'
 services:
   kestra:
     image: kestra/kestra:latest
+    user: "root"
     build:
       context: .
     command: server standalone -f /app/flows/
@@ -11,7 +12,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/kestra-wd:/tmp/kestra-wd
       - ./flows:/app/flows/
+      - ../terraform/keys/my-credentials.json:/app/my-credentials.json
     environment:
+      GOOGLE_APPLICATION_CREDENTIALS: "/app/my-credentials.json"
       KESTRA_CONFIGURATION: |
         datasources:
           postgres:
@@ -37,11 +40,14 @@ services:
             tmpDir:
               path: /tmp/kestra-wd/tmp
           url: http://localhost:8080/
-        
     ports:
       - "8080:8080"
       - "8081:8081"
-    
+    depends_on:
+      postgres:
+        condition: service_started
+
+
   postgres:
     image: postgres:16
     container_name: postgres

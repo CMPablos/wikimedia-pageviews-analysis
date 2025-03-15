@@ -17,7 +17,7 @@ provider "google" {
 
 
 resource "google_storage_bucket" "data-lake-bucket" {
-  name          = var.project_name
+  name          = var.gcs_bucket_name
   location      = var.location
   storage_class = "STANDARD"
   uniform_bucket_level_access = true
@@ -39,7 +39,7 @@ resource "google_storage_bucket" "data-lake-bucket" {
 }
 
 resource "google_bigquery_dataset" "dataset" {
-  dataset_id = "pageviews_dataset"
-  project     = var.project_name
-  location   = var.location
+    dataset_id = var.bq_dataset_name
+    project     = var.project_name
+    location   = var.location
 }

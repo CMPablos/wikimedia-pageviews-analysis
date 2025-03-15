@@ -4,6 +4,7 @@ description: Finds the latest pageviews URL
 
 variables:
   base_url: "https://dumps.wikimedia.org/other/pageviews/"
+  gcs_bucket_name: "wikimedia-pageviews-bucket"
 
 tasks:
   - id: latest_pageviews
@@ -15,6 +16,7 @@ tasks:
       from bs4 import BeautifulSoup
       import sys
       import json
+      import os
       from kestra import Kestra
 
 
@@ -43,13 +45,15 @@ tasks:
           print(json.dumps({"latest_pageviews_url": latest_url}))
 
           # Full URL
-          return latest_url
+          return latest_url, latest_file
 
 
-      latest_url = get_latest_pageviews_url("{{ vars.base_url }}")
+      latest_url, latest_file = get_latest_pageviews_url("{{ vars.base_url }}")
+      latest_file_no_ext = os.path.splitext(latest_file)[0]
 
       Kestra.outputs({
-        'latest_url': latest_url
+        'latest_url': latest_url,
+        'latest_file': latest_file_no_ext
       })
 
 
@@ -62,7 +66,7 @@ tasks:
   - id: pageviews_to_parquet
     type: io.kestra.plugin.scripts.python.Script
     outputFiles:
-      - "latest_pageviews_table1.parquet"
+      - "latest_pageviews_table.parquet"
     inputFiles:
       page_views_file.gz: "{{outputs.download_pageviews.uri}}"
     beforeCommands:
@@ -96,10 +100,15 @@ tasks:
 
         df = pd.DataFrame(data, columns=['language', 'project', 'page_title',
                                 'views', 'bytes'])
-        df.to_parquet('latest_pageviews_table1.parquet')
+        df.to_parquet('latest_pageviews_table.parquet')
 
       parse_pageviews_data('page_views_file.gz')
 
+
+  - id: upload_to_gcs
+    type: io.kestra.plugin.gcp.gcs.Upload
+    from: "{{ outputs.pageviews_to_parquet.files['latest_pageviews_table.parquet'] }}"
+    to: "gs://{{ vars.gcs_bucket_name }}/{{ outputs.latest_pageviews.vars.latest_url }}"
 
 triggers:
   - id: daily

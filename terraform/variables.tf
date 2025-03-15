@@ -22,7 +22,7 @@ variable "location" {
 
 variable "bq_dataset_name" {
   description = "My BigQuery Dataset Name"
-  default     = "wikimedia-pageviews-dataset"
+  default     = "pageviewsDataset"
 }
 
 variable "gcs_bucket_name" {
