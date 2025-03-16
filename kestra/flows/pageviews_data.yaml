@@ -8,6 +8,15 @@ variables:
   data_age: 3 # Files to be extracted, 1 file represents 1 hour of data
 
 tasks:
+  - id: existing_pageviews_in_bucket
+    type: io.kestra.plugin.gcp.gcs.List
+    from: "gs://{{ vars.gcs_bucket_name }}/"
+
+  - id: current_pageviews
+    type: io.kestra.plugin.core.log.Log        
+    message: "Found existing pageviews in bucket:\n {{ outputs.existing_pageviews_in_bucket.blobs }}"
+
+
   - id: latest_pageviews
     type: io.kestra.plugin.scripts.python.Script
     beforeCommands:
@@ -21,7 +30,7 @@ tasks:
       from kestra import Kestra
 
 
-      def get_latest_pageviews_url(base_url: str):
+      def get_latest_pageviews_url(base_url: str, files_in_bucket: list[str] = []):
           resp = requests.get(base_url)
           soup = BeautifulSoup(resp.content, 'html.parser')
 
@@ -44,22 +53,40 @@ tasks:
                           a['href'].startswith('pageviews') and \
                           a['href'].endswith('.gz')], 
                           reverse=True)
-          latest_files = files[:{{ vars.data_age }}]
 
-          # latest_files_info = [(f"{base_url}{latest_year}{latest_month}{file}", os.path.splitext(file)[0]) 
-          #                       for file in latest_files]
-          # getting the full path of the file and just the name of the file, which is going to be used to name the parquet
+          files_in_bucket = [os.path.splitext(file.split('/')[-1])[0] for file in files_in_bucket]
+
+          latest_files = files[:{{ vars.data_age }}]
+          print(f'Latest files: {latest_files}')
+          latest_files = [file for file in latest_files if os.path.splitext(file)[0] not in files_in_bucket]
+          print(f'Keeping: {latest_files}')
+
           latest_files = [{'url':f"{base_url}{latest_year}{latest_month}{file}", 
                           'file_name': os.path.splitext(file)[0]}
                           for file in latest_files]
-          # latest_urls, latest_files_no_ext = zip(*latest_files_info) if latest_files_info else ([], [])
-
-          # print(json.dumps({"latest_pageviews_urls": latest_urls}))
 
           return json.dumps(latest_files)
           #return latest_files
 
-      latest_urls= get_latest_pageviews_url("{{ vars.base_url }}")
+      # Getting just the file names from the uri
+      # Parse the GCS blob information
+      blobs = json.loads("""{{ outputs.existing_pageviews_in_bucket.blobs | json }}""")
+      
+      # Extract just the file names from the blobs
+      files_in_bucket = []
+      for blob in blobs:
+          # Get the filename from the 'name' field
+          file_name = blob.get('name', '')
+          if file_name:
+              # Just the filename without path
+              files_in_bucket.append(os.path.basename(file_name))
+      
+      print(f"Extracted file names from bucket: {files_in_bucket}")
+      latest_urls= get_latest_pageviews_url(base_url = "{{ vars.base_url }}",
+                                            files_in_bucket = files_in_bucket)
+
+      if len(latest_urls) == 0:
+        print('No new files found')
       Kestra.outputs({
         'latest_urls': latest_urls
       })
@@ -68,9 +95,9 @@ tasks:
     type: io.kestra.plugin.core.flow.ForEach
     values: "{{ outputs.latest_pageviews.vars.latest_urls }}"
     tasks:
-    - id: log        
+    - id: current_url   
       type: io.kestra.plugin.core.log.Log        
-      message: "{{ json(taskrun.value) }}"
+      message: "Processing current task:\n {{ json(taskrun.value) }}"
 
     - id: download_pageviews
       type: io.kestra.plugin.core.http.Download
