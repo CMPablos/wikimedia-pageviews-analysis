@@ -1,0 +1,42 @@
+id: dbt-transformation-flow
+namespace: data-pipeline    
+description: Transform GCS parquet files into BigQuery tables using dbt
+
+
+variables:
+  bigquery_dataset: "pageviewsDataset"
+  bigquery_project: "wikimedia-pageviews"
+  gcs_bucket_name: "wikimedia-pageviews-bucket"
+  dbt_project_dir: "/app/dbt/"
+
+tasks:
+
+
+
+  - id: working_directory
+    type: io.kestra.plugin.core.flow.WorkingDirectory
+    tasks:
+    - id: dbt_core
+      type: io.kestra.plugin.dbt.cli.DbtCLI
+      projectDir: "{{ vars.dbt_project_dir }}"
+      taskRunner:
+        type: io.kestra.plugin.scripts.runner.docker.Docker
+      containerImage: ghcr.io/kestra-io/dbt-bigquery:latest
+      # inputFiles:
+      #   dbt_project.yml: "{{ vars.dbt_project_dir }}/dbt_project.yml"
+      commands:
+        - dbt build
+      profiles: |
+        wikimedia_pageviews:
+          target: prod
+          outputs:
+            prod:
+              type: bigquery
+              project: "wikimedia-pageviews"
+              method: service-account
+              keyfile: "/app/my-credentials.json"
+              project: "{{ vars.bigquery_project }}"
+              dataset: "{{ vars.bigquery_dataset }}"
+              threads: 4
+              timeout_seconds: 300
+              location: US
