@@ -13,8 +13,10 @@ services:
       - /tmp/kestra-wd:/tmp/kestra-wd
       - ./flows:/app/flows/
       - ../terraform/keys/my-credentials.json:/app/my-credentials.json
+      - ../dbt/wikimedia_pageviews:/app/dbt/
     environment:
       GOOGLE_APPLICATION_CREDENTIALS: "/app/my-credentials.json"
+      DBT_PROFILES_DIR: "/app/dbt"
       KESTRA_CONFIGURATION: |
         datasources:
           postgres:

@@ -1,7 +1,7 @@
 
 
 variable "credentials" {
-  description = "My Credentials"
+  description = "json key file location"
   default     = "./keys/my-credentials.json"
 }
 
@@ -21,11 +21,11 @@ variable "location" {
 }
 
 variable "bq_dataset_name" {
-  description = "My BigQuery Dataset Name"
+  description = "BigQuery Dataset Name"
   default     = "pageviewsDataset"
 }
 
 variable "gcs_bucket_name" {
-  description = "My Storage Bucket Name"
+  description = "Storage Bucket Name"
   default     = "wikimedia-pageviews-bucket"
 }
