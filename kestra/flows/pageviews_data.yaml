@@ -120,30 +120,35 @@ tasks:
         import pandas as pd
         import os
         import gzip
+        from datetime import datetime
         from kestra import Kestra
 
+        url = '{{ json(taskrun.value).url }}'
         def parse_pageviews_data(file_path: str):
+          filename = os.path.splitext(os.path.split(url)[-1])[0]
+          date_time_str = ' '.join(filename.split('-')[-2:])
+          date_time = datetime.strptime(date_time_str, '%Y%m%d %H%M%S')
           with gzip.open(file_path, 'rt', encoding='utf-8') as f:
             data = []
             for row, line in enumerate(f, 1):
-                try:
-                    line_cols = line.split()
-                    lang_project, page_title, views, data_bytes = line_cols
-                    lang_project_split = lang_project.split('.')
-                    language = lang_project_split[0]# if len(lang_project_split) > 1 else ''
-                    if len(language) <= 1: #Means no language was specified
-                        language = ''
-                        project = lang_project
-                    else:
-                        project = '.'.join(lang_project_split[1:]) if len(lang_project_split) > 1 else ''
-                    data.append((language, project, page_title, int(views), int(data_bytes)))
-                except Exception as e:
-                    print(f'Error at row: {row}')
-                    print(e)
-                    print(f'line: {line}')
-
+              try:
+                line_cols = line.split()
+                lang_project, page_title, views, data_bytes = line_cols
+                lang_project_split = lang_project.split('.')
+                language = lang_project_split[0]# if len(lang_project_split) > 1 else None
+                if len(language) <= 1: #Means no language was specified
+                    language = None
+                    project = lang_project
+                else:
+                    project = '.'.join(lang_project_split[1:]) if len(lang_project_split) > 1 else None
+                data.append((language, project, page_title, int(views), int(data_bytes), date_time, url))
+              except Exception as e:
+                print(f'Error at row: {row}')
+                print(e)
+                print(f'line: {line}')
+                  
           df = pd.DataFrame(data, columns=['language', 'project', 'page_title',
-                                  'views', 'bytes'])
+                            'views', 'bytes', 'date', 'url'])
           df.to_parquet('pageviews_table.parquet')
         parse_pageviews_data('page_views_file.gz')
         
