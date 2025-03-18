@@ -5,8 +5,8 @@
 SELECT
   language,
   page_title,
-  SUM(views),
-  SUM(bytes)
+  SUM(views) as views,
+  SUM(bytes) as bytes
 FROM
-  `wikimedia-pageviews.pageviewsDataset.pageviews_partitioned`
+  {{ ref('pageviews_partitioned') }}
   GROUP BY language, page_title

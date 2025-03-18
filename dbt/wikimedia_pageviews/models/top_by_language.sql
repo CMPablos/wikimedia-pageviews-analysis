@@ -11,7 +11,7 @@ WITH ranked_data AS (
     views,
     ROW_NUMBER() OVER (PARTITION BY language ORDER BY views DESC) AS rank
   FROM
-    `wikimedia-pageviews.pageviewsDataset.pageviews_summarized`
+      {{ ref('pageviews_summarized') }}
 )
 SELECT
   language,
