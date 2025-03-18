@@ -2,41 +2,72 @@ id: dbt-transformation-flow
 namespace: wikimedia-pageviews  
 description: Transform GCS parquet files into BigQuery tables using dbt
 
-
 variables:
   bigquery_dataset: "pageviewsDataset"
   bigquery_project: "wikimedia-pageviews"
   gcs_bucket_name: "wikimedia-pageviews-bucket"
-  dbt_project_dir: "/app/dbt/"
+  dbt_project_dir: "/app/dbt"
+  json_key_path: "/app/my-credentials.json"
 
-tasks:
 
-
+tasks:    
+  - id: setup_bigquery_external_table
+    type: io.kestra.plugin.gcp.bigquery.Query
+    sql: |
+      CREATE OR REPLACE EXTERNAL TABLE `{{ vars.bigquery_project }}.{{ vars.bigquery_dataset }}.pageviews_external` (
+      language STRING,
+      project STRING,
+      page_title STRING,
+      views INTEGER,
+      bytes INTEGER,
+      date INTEGER,
+      url STRING
+      )
+      OPTIONS (
+        format = 'PARQUET',
+        uris = ['gs://{{ vars.gcs_bucket_name }}/*.parquet']
+      )
 
   - id: working_directory
     type: io.kestra.plugin.core.flow.WorkingDirectory
     tasks:
-    - id: dbt_core
-      type: io.kestra.plugin.dbt.cli.DbtCLI
-      projectDir: "{{ vars.dbt_project_dir }}"
-      taskRunner:
-        type: io.kestra.plugin.scripts.runner.docker.Docker
-      containerImage: ghcr.io/kestra-io/dbt-bigquery:latest
-      # inputFiles:
-      #   dbt_project.yml: "{{ vars.dbt_project_dir }}/dbt_project.yml"
-      commands:
-        - dbt build
-      profiles: |
-        wikimedia_pageviews:
-          target: prod
-          outputs:
-            prod:
-              type: bigquery
-              project: "wikimedia-pageviews"
-              method: service-account
-              keyfile: "/app/my-credentials.json"
-              project: "{{ vars.bigquery_project }}"
-              dataset: "{{ vars.bigquery_dataset }}"
-              threads: 4
-              timeout_seconds: 300
-              location: US
+      - id: dbt_files_copy
+        type: io.kestra.plugin.scripts.shell.Commands
+        taskRunner:
+          type: io.kestra.plugin.core.runner.Process
+        commands:
+          - cp -r {{vars.dbt_project_dir}}/* {{ workingDir }}
+          - cp {{ vars.json_key_path }} {{ workingDir }}
+          - ls -la {{ workingDir }}
+
+      - id: dbt_core
+        type: io.kestra.plugin.dbt.cli.DbtCLI
+        # projectDir: "{{ workingDir }}"
+        taskRunner:
+          type: io.kestra.plugin.scripts.runner.docker.Docker
+        containerImage: ghcr.io/kestra-io/dbt-bigquery:latest
+        commands:
+          - dbt build
+        profiles: |
+          wikimedia_pageviews:
+            target: prod
+            outputs:
+              prod:
+                type: bigquery
+                project: "wikimedia-pageviews"
+                method: service-account
+                keyfile: "my-credentials.json"
+                dataset: "{{ vars.bigquery_dataset }}"
+                threads: 4
+                timeout_seconds: 300
+                location: US
+
+triggers:
+  - id: trigger_dbt
+    type: io.kestra.plugin.core.trigger.Flow
+    preconditions:      
+      id: flow_trigger      
+      flows:        
+        - namespace: wikimedia-pageviews        
+          flowId: pageviews-data       
+          states: [SUCCESS]
