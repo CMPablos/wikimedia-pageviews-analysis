@@ -3,13 +3,17 @@
     "Main_Page",
     "Wikipedia:Portada",
     "Wikipedia:Hauptseite",
-    "Wikipédia:Accueil_principal"
+    "Wikipédia:Accueil_principal",
+    "-",
+    ""
   ] %}
   {% set search_pages = [
     "Special:Search",
     "Especial:Buscar",
     "Spezial:Suche",
-    "Spécial:Recherche"
+    "Spécial:Recherche",
+    "-",
+    ""
   ] %}
   {% set quoted_pages = [] %}
 

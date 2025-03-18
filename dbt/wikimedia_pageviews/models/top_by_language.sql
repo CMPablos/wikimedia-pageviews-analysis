@@ -12,6 +12,9 @@ WITH ranked_data AS (
     ROW_NUMBER() OVER (PARTITION BY language ORDER BY views DESC) AS rank
   FROM
       {{ ref('pageviews_summarized') }}
+  {% if filter_data %}
+    WHERE page_title NOT IN ({{ filter_titles }})
+  {% endif %}
 )
 SELECT
   language,
@@ -21,6 +24,3 @@ FROM
   ranked_data
 WHERE
   rank <= 5
-  {% if filter_data %}
-    AND page_title NOT IN ({{ filter_titles }})
-  {% endif %}
