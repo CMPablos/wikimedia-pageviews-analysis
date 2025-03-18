@@ -1,5 +1,5 @@
 id: dbt-transformation-flow
-namespace: data-pipeline    
+namespace: wikimedia-pageviews  
 description: Transform GCS parquet files into BigQuery tables using dbt
 
 
