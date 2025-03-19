@@ -5,7 +5,13 @@ description: Finds the latest pageviews URL
 variables:
   base_url: "https://dumps.wikimedia.org/other/pageviews/"
   gcs_bucket_name: "wikimedia-pageviews-bucket"
-  data_age: 3 # Files to be extracted, 1 file represents 1 hour of data
+  data_age: 8 # Files to be extracted, 1 file represents 1 hour of data
+  #limiting the languages to reduce the size of the data.To enable all languages set one element of the list as 'all'
+  select_languages: 
+    -'en'
+    -'es'
+    -'de'
+    -'fr'
 
 tasks:
   - id: existing_pageviews_in_bucket
@@ -124,7 +130,7 @@ tasks:
         from kestra import Kestra
 
         url = '{{ json(taskrun.value).url }}'
-        def parse_pageviews_data(file_path: str):
+        def parse_pageviews_data(file_path: str, select_languages: list[str]):
           filename = os.path.splitext(os.path.split(url)[-1])[0]
           date_time_str = ' '.join(filename.split('-')[-2:])
           date_time = datetime.strptime(date_time_str, '%Y%m%d %H%M%S')
@@ -135,8 +141,10 @@ tasks:
                 line_cols = line.split()
                 lang_project, page_title, views, data_bytes = line_cols
                 lang_project_split = lang_project.split('.')
-                language = lang_project_split[0]# if len(lang_project_split) > 1 else None
-                if len(language) <= 1: #Means no language was specified
+                language = lang_project_split[0]  # if len(lang_project_split) > 1 else None
+                if ('all' not in select_languages) & (language not in select_languages):
+                  continue
+                if len(language) <= 1:
                     language = None
                     project = lang_project
                 else:
@@ -150,7 +158,7 @@ tasks:
           df = pd.DataFrame(data, columns=['language', 'project', 'page_title',
                             'views', 'bytes', 'date', 'url'])
           df.to_parquet('pageviews_table.parquet')
-        parse_pageviews_data('page_views_file.gz')
+        parse_pageviews_data('page_views_file.gz', select_languages = "{{ vars.select_languages }}")
         
     - id: upload_to_gcs
       type: io.kestra.plugin.gcp.gcs.Upload
