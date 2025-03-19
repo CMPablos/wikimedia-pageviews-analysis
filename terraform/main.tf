@@ -9,16 +9,16 @@ terraform {
 
 provider "google" {
     credentials = file(var.credentials)
-    project     = var.project_name
-    region      = var.region
+    project = "wikimedia-pageviews"
+    region = var.region
   # Configuration options
 }
 
 
 
 resource "google_storage_bucket" "data-lake-bucket" {
-  name          = var.gcs_bucket_name
-  location      = var.location
+  name = "wikimedia-pageviews-bucket"
+  location = var.location
   storage_class = "STANDARD"
   uniform_bucket_level_access = true
 
@@ -39,7 +39,7 @@ resource "google_storage_bucket" "data-lake-bucket" {
 }
 
 resource "google_bigquery_dataset" "dataset" {
-    dataset_id = var.bq_dataset_name
-    project     = var.project_name
-    location   = var.location
+    dataset_id = "pageviewsDataset"
+    project = "wikimedia-pageviews"
+    location = var.location
 }
