@@ -4,8 +4,6 @@ models:
   - name: pageviews_partitioned
     description: "Creates a partitioned pageviews table"
     columns:
-      - name: id
-        description: "The primary key for this table"
       - name: language
         description: "Language of the wikipedia article"
       - name: project
@@ -24,8 +22,6 @@ models:
   - name: pageviews_summarized
     description: "Creates a summarized view of the pageviews table"
     columns:
-      - name: id
-        description: "The primary key for this table"
       - name: language
         description: "Language of the wikipedia article"
       - name: page_title
@@ -36,15 +32,20 @@ models:
         description: "Data transferred"
 
   - name: top_by_language
-    description: "Creates a summarized view of the pageviews table"
+    description: ""
     columns:
-      - name: id
-        description: "The primary key for this table"
       - name: language
         description: "Language of the wikipedia article"
       - name: page_title
         description: "Title of the article"
       - name: views
+
+  - name: top_pages_hourly_views
+    description: "Creates an hourly summarization of the top pages by language"
+    columns:
+      - name: date
+        description: "Language of the wikipedia article"
+      - name: page_title
+        description: "Title of the article"
+      - name: views
         description: "Number of views or visits"
-      - name: bytes
-        description: "Data transferred"

@@ -11,6 +11,8 @@
     "Spezial:Suche",
     "Spécial:Recherche"
   ] %}
+  {% set other_pages = [
+    "Wikipedia:Featured_pictures"
   {% set empty_pages = [
     "-",
     ""

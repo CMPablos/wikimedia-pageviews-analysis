@@ -6,7 +6,7 @@ wikimedia_pageviews:
       project: "wikimedia-pageviews"
       method: service-account
       keyfile: "../terraform/keys/my-credentials.json"
-      dataset: "{{ vars.bigquery_dataset }}"
+      dataset: "pageviewsDataset"
       threads: 4
       timeout_seconds: 300
       location: US
