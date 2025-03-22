@@ -7,7 +7,7 @@ variables:
   bigquery_project: "wikimedia-pageviews"
   gcs_bucket_name: "wikimedia-pageviews-bucket"
   dbt_project_dir: "/app/dbt"
-  json_key_path: "/app/my-credentials.json"
+  json_key_path: "/tmp/my-credentials.json"
 
 
 tasks:    

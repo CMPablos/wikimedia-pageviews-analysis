@@ -12,7 +12,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/kestra-wd:/tmp/kestra-wd
       - ./flows:/app/flows/
-      - ../terraform/keys/my-credentials.json:/app/my-credentials.json
+      - ../terraform/keys/my-credentials.json:/tmp/my-credentials.json
       - ../dbt:/app/dbt/
     environment:
       GOOGLE_APPLICATION_CREDENTIALS: "/app/my-credentials.json"
