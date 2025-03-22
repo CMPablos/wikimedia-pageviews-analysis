@@ -15,7 +15,7 @@ services:
       - ../terraform/keys/my-credentials.json:/tmp/my-credentials.json
       - ../dbt:/app/dbt/
     environment:
-      GOOGLE_APPLICATION_CREDENTIALS: "/app/my-credentials.json"
+      GOOGLE_APPLICATION_CREDENTIALS: "/tmp/my-credentials.json"
       DBT_PROFILES_DIR: "/app/dbt"
       KESTRA_CONFIGURATION: |
         datasources:
