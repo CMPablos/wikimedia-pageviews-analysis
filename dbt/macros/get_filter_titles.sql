@@ -13,13 +13,14 @@
   ] %}
   {% set other_pages = [
     "Wikipedia:Featured_pictures"
+  ] %}
   {% set empty_pages = [
     "-",
     ""
   ] %}
   {% set quoted_pages = [] %}
 
-  {% for page in main_pages + search_pages + empty_pages%}
+  {% for page in main_pages + search_pages + empty_pages + other_pages %}
     {% do quoted_pages.append("'" ~ page ~ "'") %}
   {% endfor %}
 
