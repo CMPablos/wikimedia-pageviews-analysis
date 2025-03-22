@@ -5,7 +5,7 @@ description: Finds the latest pageviews URL
 variables:
   base_url: "https://dumps.wikimedia.org/other/pageviews/"
   gcs_bucket_name: "wikimedia-pageviews-bucket"
-  data_age: 8 # Files to be extracted, 1 file represents 1 hour of data
+  data_age: 24 # Files to be extracted, 1 file represents 1 hour of data
   #limiting the languages to reduce the size of the data.To enable all languages set one element of the list as 'all'
   select_languages: 
     -'en'
@@ -164,12 +164,6 @@ tasks:
       type: io.kestra.plugin.gcp.gcs.Upload
       from: "{{ outputs.pageviews_to_parquet[taskrun.value].outputFiles['pageviews_table.parquet'] }}"
       to: "gs://{{ vars.gcs_bucket_name }}/{{ json(taskrun.value).file_name }}.parquet"
-
-  #   #Starting dbt flow
-  # - id: trigger_dbt
-  #   type: io.kestra.plugin.core.flow.Trigger
-  #   flowId: dbt-transformation-flow
-  #   wait: false
 
 triggers:
   - id: Hourly
