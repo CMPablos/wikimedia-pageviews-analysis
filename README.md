@@ -1,5 +1,5 @@
 # Introduction
-This project demonstrates a data engineering pipeline that ingests Wikimedia Pageviews data, parses it into a table, and stores it in Parquet format for efficient querying. We then perform analysis on the top page views per language and a trend analysis of those top pages over the last 24 hours. The workflow runs hourly, orchestrated by Kestra, with storage and transformations managed in BigQuery. The infrastructure for cloud resources is provisioned using Terraform, and both Kestra and Postgres are containerized using Docker Compose.
+This project demonstrates a data engineering pipeline that ingests Wikimedia Pageviews data, parses it into a table, and stores it in Parquet format for efficient querying. Analysis is then performed on the top page views per language and a trend analysis of those top pages over the last 24 hours. The workflow runs hourly, orchestrated by Kestra, with storage and transformations managed in BigQuery. The infrastructure for cloud resources is provisioned using Terraform, and both Kestra and Postgres are containerized using Docker Compose.
 
 ## Key components
 ### Kestra:
@@ -26,18 +26,20 @@ Ensures an isolated environment that’s easy to spin up or tear down.
 ![image info](./images/pageviews-architecture.png)
 # Running this project
 ### Prerequisites
-    * A Google Cloud Platform project named wikimedia-pageviews
-    * A service account with permission to create buckets and BigQuery datasets. For reference, the following roles where set:
-        * BigQuery Data Editor
-        * BigQuery User
-        * Storage Admin
-    * A service account JSON key. This needs to be placed in terraform/keys/ with the name my-credentials.json
+* A Google Cloud Platform project named wikimedia-pageviews
+* A service account with permission to create buckets and BigQuery datasets. For reference, the following roles where set:
+    * BigQuery Data Editor
+    * BigQuery User
+    * Storage Admin
+* A service account JSON key. This needs to be placed in terraform/keys/ with the name my-credentials.json
 
 ### Steps
-#### 1. Clone the repository: 
+#### 1. Clone the repository and access the project directory: 
 
- https://github.com/CMPablos/wikimedia-pageviews-analysis.git
- cd wikimedia-pageviews
+```bash
+ git clone https://github.com/CMPablos/wikimedia-pageviews-analysis.git
+ cd wikimedia-pageviews-analysis
+```
 
 #### 2. Deploy the infrastructure with Terraform:
 
