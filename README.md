@@ -68,7 +68,8 @@ This builds and runs the Kestra and Postgres containers.
 * Hit the execute button at the top right corner to begin extracting data from Wikimedia.
 * The dbt-transformation-flow is automatically triggered to create the data analysis tables in bigquery once the pageviews-data flow finished downloading and parsing all the pageviews files 
 
-When both flows have completed, you’ll find the pageviews Parquet files in the wikimedia-pageviews-bucket and see the following tables created under the pageviewsDataset in BigQuery
+When both flows have completed, you’ll find the pageviews Parquet files in the wikimedia-pageviews-bucket and see the following tables created under the pageviewsDataset in BigQuery.
+
 ![image info](./images/dataset-tables.png)
 
 #### 5. Build a dashboard for Top 5 article visualization per language
