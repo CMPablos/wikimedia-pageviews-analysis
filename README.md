@@ -1,5 +1,5 @@
 # Introduction
-This project demonstrates how open data can be leveraged to build scalable, cloud-native solutions for real-world use cases like news and media monitoring, trend detection, content recommendation, and public interest analytics. It implements a data pipeline that ingests Wikimedia Pageviews data, parses it into a structured table, and stores it in Parquet format for efficient querying. The pipeline performs hourly analysis on the top page views per language and tracks their 24-hour trends. The workflow is orchestrated by Kestra, with data stored and transformed in BigQuery. Infrastructure is provisioned using Terraform, and the pipeline runs in a containerized environment with Docker Compose, including a local Postgres instance for workflow metadata.
+This project demonstrates how open data can be leveraged to build scalable, cloud-native solutions for real-world use cases like news and media monitoring, trend detection, content recommendation, and public interest analytics. It implements a data pipeline that ingests Wikimedia Pageviews data, parses it into a structured table, and stores it in .parquet format for efficient querying. The pipeline performs hourly analysis on the top page views per language and tracks their 24-hour trends. The workflow is orchestrated by Kestra, with data stored in Google Cloud Storage (GCS) and transformed using Data Build Tool (DBT) in BigQuery for analysis. Infrastructure is provisioned using Terraform, and the pipeline runs in a containerized environment with Docker Compose, including a local Postgres instance for workflow metadata.
 
 ## Key components
 
@@ -16,7 +16,7 @@ Used for data warehousing. Holds analysis-ready tables created by DBT
 Manages the hourly job that downloads data from Wikimedia into a GCS bucket, then triggers DBT to load data into BigQuery.
 
 ### Data Build Tool (DBT):
-Handles SQL-based data transformations and modeling in BigQuery, turning the data loaded into the GCS bucket into analysis-ready tables in BigQuery.
+Handles SQL-based data transformations and modeling, turning the data loaded into the GCS bucket into analysis-ready tables in BigQuery.
 
 ### Postgres:
 Runs in a container alongside Kestra for metadata.
