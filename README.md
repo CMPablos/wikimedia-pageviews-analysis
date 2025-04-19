@@ -1,26 +1,28 @@
 # Introduction
-This project demonstrates a data engineering pipeline that ingests Wikimedia Pageviews data, parses it into a table, and stores it in Parquet format for efficient querying. Analysis is then performed on the top page views per language and a trend analysis of those top pages over the last 24 hours. The workflow runs hourly, orchestrated by Kestra, with storage and transformations managed in BigQuery. The infrastructure for cloud resources is provisioned using Terraform, and both Kestra and Postgres are containerized using Docker Compose.
+This project demonstrates how open data can be leveraged to build scalable, cloud-native solutions for real-world use cases like news and media monitoring, trend detection, content recommendation, and public interest analytics. It implements a data pipeline that ingests Wikimedia Pageviews data, parses it into a structured table, and stores it in Parquet format for efficient querying. The pipeline performs hourly analysis on the top page views per language and tracks their 24-hour trends. The workflow is orchestrated by Kestra, with data stored and transformed in BigQuery. Infrastructure is provisioned using Terraform, and the pipeline runs in a containerized environment with Docker Compose, including a local Postgres instance for workflow metadata.
 
 ## Key components
-### Kestra:
-Manages the hourly job that downloads/parses data and triggers DBT to load data into BigQuery.
-
-### Postgres:
-Runs in a container alongside Kestra for metadata.
-
-### Google Cloud Storage:
-Parquet is chosen for size optimization and query performance.
-Files are stored in a bucket created by Terraform.
-
-### BigQuery
-Used for data warehousing. Holds analysis-ready tables created by DBT
 
 ### Terraform
 Automates the provisioning and management of the cloud infrastructure. In this project its used to Create a Google Cloud Storage bucket and a BigQuery dataset.
 
+### Google Cloud Storage (GCS):
+Stores the parquet-formatted pageview data downloaded by Kestra.
+
+### BigQuery
+Used for data warehousing. Holds analysis-ready tables created by DBT
+
+### Kestra:
+Manages the hourly job that downloads data from Wikimedia into a GCS bucket, then triggers DBT to load data into BigQuery.
+
+### Data Build Tool (DBT):
+Handles SQL-based data transformations and modeling in BigQuery, turning the data loaded into the GCS bucket into analysis-ready tables in BigQuery.
+
+### Postgres:
+Runs in a container alongside Kestra for metadata.
+
 ### Docker Compose
-docker-compose up runs both Kestra and Postgres containers.
-Ensures an isolated environment that’s easy to spin up or tear down.
+To run both Kestra and Postgres containers, and to ensure an isolated environment that’s easy to spin up or tear down.
 
 ## Project architecture
 ![image info](./images/pageviews-architecture.png)
