@@ -3,17 +3,17 @@ This project demonstrates a data engineering pipeline that ingests Wikimedia Pag
 
 ## Key components
 ### Kestra:
-Manages the hourly job that downloads/parses data and triggers dbt or SQL scripts (if you use dbt or direct SQL) to load data into BigQuery.
+Manages the hourly job that downloads/parses data and triggers DBT to load data into BigQuery.
 
 ### Postgres:
-Runs in a container alongside Kestra for metadata or internal storage (depending on your Kestra setup).
+Runs in a container alongside Kestra for metadata.
 
 ### Google Cloud Storage:
 Parquet is chosen for size optimization and query performance.
 Files are stored in a bucket created by Terraform.
 
 ### BigQuery
-Used for data warehousing. Holds analysis-ready tables created by DataBase Tools (DBT)
+Used for data warehousing. Holds analysis-ready tables created by DBT
 
 ### Terraform
 Automates the provisioning and management of the cloud infrastructure. In this project its used to Create a Google Cloud Storage bucket and a BigQuery dataset.
