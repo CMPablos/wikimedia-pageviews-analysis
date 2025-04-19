@@ -55,10 +55,11 @@ To run both Kestra and Postgres containers, and to ensure an isolated environmen
 This creates the required bucket and BigQuery dataset in wikimedia-pageviews
 
 #### 3. Run Docker Compose
-Go back to the root directory and then run:
+Go back to the project root directory and then:
 
 ```bash
-    docker-compose up -d
+   cd kestra
+   docker-compose up -d
 ```
 
 This builds and runs the Kestra and Postgres containers. 
